@@ -1,6 +1,8 @@
+from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Iterable
 
 class ExerciseKind(str, Enum):
     STRENGTH = "силовое"
@@ -27,7 +29,6 @@ class MuscleGroup(str, Enum):
 
 @dataclass
 class Exercise:
-    """Упражнение: вид, группы мышц, название, описание, id."""
     name: str
     kind: ExerciseKind
     muscle_groups: set[MuscleGroup]
@@ -45,6 +46,7 @@ class Exercise:
     def __str__(self) -> str:
         groups = ", ".join(g.value for g in self.muscle_groups)
         return f"[{self.id}] {self.name} ({self.kind.value}; {groups})"
+
 
 class ExerciseCatalog:
 
@@ -72,8 +74,33 @@ class ExerciseCatalog:
         return [ex for ex in self._items.values() if group in ex.muscle_groups]
 
     def search(self, query: str) -> list[Exercise]:
-        q = query.lower().strip()
-        return [
-            ex for ex in self._items.values()
-            if q in ex.name.lower() or q in ex.description.lower()
-        ]
+        return find_exercises(self, query=query)
+
+def find_exercises(
+    catalog: ExerciseCatalog,
+    query: str | None = None,
+    *,
+    kinds: Iterable[ExerciseKind] | None = None,
+    muscle_groups: Iterable[MuscleGroup] | None = None,
+    match_all_groups: bool = False,
+) -> list[Exercise]:
+    q = query.lower().strip() if query else None
+    kinds_set = set(kinds) if kinds else None
+    groups_set = set(muscle_groups) if muscle_groups else None
+
+    def matches(ex: Exercise) -> bool:
+        if q is not None:
+            if q not in ex.name.lower() and q not in ex.description.lower():
+                return False
+        if kinds_set is not None and ex.kind not in kinds_set:
+            return False
+        if groups_set is not None:
+            if match_all_groups:
+                if not groups_set.issubset(ex.muscle_groups):
+                    return False
+            else:
+                if groups_set.isdisjoint(ex.muscle_groups):
+                    return False
+        return True
+
+    return [ex for ex in catalog.all() if matches(ex)]
