@@ -25,3 +25,4 @@
 https://github.com/users/vilkastole-spec/projects/3
 
 ## лаб. 3
+https://github.com/vilkastole-spec/User-Stories/blob/main/lab3.md
