@@ -1,6 +1,5 @@
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum
 
 class ExerciseKind(str, Enum):
@@ -28,6 +27,7 @@ class MuscleGroup(str, Enum):
 
 @dataclass
 class Exercise:
+    """Упражнение: вид, группы мышц, название, описание, id."""
     name: str
     kind: ExerciseKind
     muscle_groups: set[MuscleGroup]
@@ -45,7 +45,6 @@ class Exercise:
     def __str__(self) -> str:
         groups = ", ".join(g.value for g in self.muscle_groups)
         return f"[{self.id}] {self.name} ({self.kind.value}; {groups})"
-
 
 class ExerciseCatalog:
 
@@ -78,30 +77,3 @@ class ExerciseCatalog:
             ex for ex in self._items.values()
             if q in ex.name.lower() or q in ex.description.lower()
         ]
-
-@dataclass
-class Training:
-    starts_at: datetime
-    duration: timedelta = timedelta(hours=1)
-    exercise_ids: list[str] = field(default_factory=list)
-
-    def __post_init__(self):
-        if not isinstance(self.starts_at, datetime):
-            raise TypeError("starts_at должен быть datetime")
-        if self.duration <= timedelta(0):
-            raise ValueError("Длительность должна быть > 0")
-
-    @property
-    def ends_at(self) -> datetime:
-        return self.starts_at + self.duration
-
-    def add_exercise(self, exercise: Exercise | str) -> None:
-        ex_id = exercise.id if isinstance(exercise, Exercise) else exercise
-        if ex_id in self.exercise_ids:
-            raise ValueError(f"id={ex_id} уже в тренировке")
-        self.exercise_ids.append(ex_id)
-
-    def remove_exercise(self, exercise_id: str) -> None:
-        if exercise_id not in self.exercise_ids:
-            raise KeyError(f"id={exercise_id} нет в тренировке")
-        self.exercise_ids.remove(exercise_id)
