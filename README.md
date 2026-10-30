@@ -22,5 +22,6 @@
 
 
 ## ссылка на канбан:
+https://github.com/users/vilkastole-spec/projects/3
 
 ## лаб. 3
